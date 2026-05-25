@@ -4,7 +4,7 @@ import { loggerService } from '../services/loggerService';
 import { notifyService } from '../services/notifyService';
 
 /**
- * רכיב פורטל תלמיד
+ 
  * Student Portal component
  */
 const StudentPortal = () => {
