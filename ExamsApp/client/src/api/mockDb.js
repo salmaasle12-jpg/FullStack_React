@@ -1,5 +1,10 @@
 // בסיס נתונים מדומה של המערכת
 export const mockDb = {
+  // רשימת משתמשים
+  users: [
+    { id: "u101", email: "student@test.com", password: "123", role: "student", fullName: "Student User" },
+    { id: "u102", email: "teacher@test.com", password: "123", role: "teacher", fullName: "Teacher User" }
+  ],
   
   // רשימת מבחנים
   exams: [
