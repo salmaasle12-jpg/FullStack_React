@@ -9,6 +9,16 @@ import { loggerService } from '../services/loggerService';
 class UserService {
   constructor() {
     this.delayTime = 800;
+    this.STORAGE_KEY_USERS = 'users_db';
+    this._initUsers();
+  }
+
+  // אתחול המשתמשים במידה ולא קיימים באחסון המקומי
+  _initUsers() {
+    let users = storageService.load(this.STORAGE_KEY_USERS);
+    if (!users) {
+      storageService.save(this.STORAGE_KEY_USERS, mockDb.users);
+    }
   }
 
   // פונקציה פרטית להדמיית השהיה
@@ -21,10 +31,12 @@ class UserService {
     loggerService.log(`Attempting login for: ${email}`);
     await this._delay();
 
-    const user = mockDb.users.find(u => u.email === email && u.password === password);
+    const users = storageService.load(this.STORAGE_KEY_USERS) || [];
+    const user = users.find(u => u.email === email && u.password === password);
     
     if (user) {
-      const { password, ...userWithoutPassword } = user;
+      const userWithoutPassword = { ...user };
+      delete userWithoutPassword.password;
       storageService.save('loggedinUser', userWithoutPassword);
       loggerService.info('Login successful', userWithoutPassword);
       return userWithoutPassword;
@@ -39,7 +51,8 @@ class UserService {
     loggerService.log(`Attempting registration for: ${userData.email}`);
     await this._delay();
 
-    const existingUser = mockDb.users.find(u => u.email === userData.email);
+    const users = storageService.load(this.STORAGE_KEY_USERS) || [];
+    const existingUser = users.find(u => u.email === userData.email);
     if (existingUser) {
       loggerService.error('Registration failed: User already exists');
       throw new Error('User already exists');
@@ -50,9 +63,11 @@ class UserService {
       id: 'u' + Date.now()
     };
 
-    mockDb.users.push(newUser);
+    users.push(newUser);
+    storageService.save(this.STORAGE_KEY_USERS, users);
     
-    const { password, ...userWithoutPassword } = newUser;
+    const userWithoutPassword = { ...newUser };
+    delete userWithoutPassword.password;
     storageService.save('loggedinUser', userWithoutPassword);
     loggerService.info('Registration successful', userWithoutPassword);
     return userWithoutPassword;
