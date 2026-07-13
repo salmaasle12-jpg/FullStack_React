@@ -1,5 +1,4 @@
 /**
- * שירות לניהול לוגים במערכת
  * Logger service for system logs
  */
 class LoggerService {
@@ -7,17 +6,17 @@ class LoggerService {
     this.prefix = "[E-Test System]";
   }
 
-  // הדפסת הודעת מידע
+  // Log information message
   info(message, data = "") {
     console.log(`${this.prefix} INFO: ${message}`, data);
   }
 
-  // הדפסת הודעת שגיאה
+  // Log error message
   error(message, error = "") {
     console.error(`${this.prefix} ERROR: ${message}`, error);
   }
 
-  // הדפסת הודעת לוג כללית
+  // Log general message
   log(message) {
     console.log(`${this.prefix} LOG: ${message} at ${new Date().toLocaleTimeString()}`);
   }

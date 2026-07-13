@@ -1,25 +1,24 @@
 /**
- * שירות לניהול אחסון מקומי (localStorage)
  * Storage service for localStorage management
  */
 class StorageService {
-  // שמירת נתונים
+  // Save data
   save(key, val) {
     localStorage.setItem(key, JSON.stringify(val));
   }
 
-  // טעינת נתונים
+  // Load data
   load(key) {
     const val = localStorage.getItem(key);
     return val ? JSON.parse(val) : null;
   }
 
-  // מחיקת נתונים
+  // Remove data
   remove(key) {
     localStorage.removeItem(key);
   }
 
-  // ניקוי כל האחסון
+  // Clear all storage
   clear() {
     localStorage.clear();
   }

@@ -3,7 +3,6 @@ import { storageService } from '../services/storageService';
 import { loggerService } from '../services/loggerService';
 
 /**
- * שירות לניהול משתמשים ואימות
  * User service for authentication and user management
  */
 class UserService {
@@ -13,7 +12,7 @@ class UserService {
     this._initUsers();
   }
 
-  // אתחול המשתמשים במידה ולא קיימים באחסון המקומי
+  // Initialize users if they don't exist in local storage
   _initUsers() {
     let users = storageService.load(this.STORAGE_KEY_USERS);
     if (!users) {
@@ -21,12 +20,12 @@ class UserService {
     }
   }
 
-  // פונקציה פרטית להדמיית השהיה
+  // Private function to simulate delay
   _delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms || this.delayTime));
   }
 
-  // התחברות למערכת
+  // Login to the system
   async login(email, password) {
     loggerService.log(`Attempting login for: ${email}`);
     await this._delay();
@@ -46,7 +45,7 @@ class UserService {
     }
   }
 
-  // הרשמה למערכת
+  // Register to the system
   async register(userData) {
     loggerService.log(`Attempting registration for: ${userData.email}`);
     await this._delay();
@@ -73,15 +72,22 @@ class UserService {
     return userWithoutPassword;
   }
 
-  // התנתקות מהמערכת
+  // Logout from the system
   logout() {
     loggerService.log('User logged out');
     storageService.remove('loggedinUser');
   }
 
-  // קבלת המשתמש המחובר כרגע
+  // Get currently logged-in user
   getLoggedinUser() {
     return storageService.load('loggedinUser');
+  }
+
+  // Fetch all users
+  async getUsers() {
+    loggerService.log("Fetching all users");
+    await this._delay();
+    return storageService.load(this.STORAGE_KEY_USERS) || [];
   }
 }
 
