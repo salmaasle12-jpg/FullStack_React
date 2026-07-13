@@ -1,88 +1,126 @@
-import { mockDb } from './mockDb';
-import { storageService } from '../services/storageService';
 import { loggerService } from '../services/loggerService';
 
+const API_URL = "http://localhost:5000/api";
+
 /**
- * שירות לניהול מבחנים
  * Exam service for managing e-tests
  */
 class ExamService {
-  constructor() {
-    this.delayTime = 500;
-    this.STORAGE_KEY_EXAMS = 'exams_db';
-    this.STORAGE_KEY_RESULTS = 'results_db';
-    this._initExams();
-  }
 
-  // אתחול המבחנים במידה ולא קיימים באחסון המקומי
-  _initExams() {
-    let exams = storageService.load(this.STORAGE_KEY_EXAMS);
-    if (!exams) {
-      storageService.save(this.STORAGE_KEY_EXAMS, mockDb.exams);
-    }
-  }
-
-  // פונקציה פרטית להדמיית השהיה
-  _delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms || this.delayTime));
-  }
-
-  // שליפת כל המבחנים
+  // Fetch all exams
   async getAllExams() {
-    loggerService.log("Fetching all exams");
-    await this._delay();
-    return storageService.load(this.STORAGE_KEY_EXAMS) || [];
+    loggerService.log("Fetching all exams from API");
+
+    const response = await fetch(`${API_URL}/exams`);
+    if (!response.ok) throw new Error("Failed to load exams");
+
+    return await response.json();
   }
 
-  // שליפת מבחן לפי מזהה
+
+  // Fetch exam by ID
   async getExamById(id) {
-    loggerService.log(`Fetching exam with id: ${id}`);
-    await this._delay();
-    const exams = storageService.load(this.STORAGE_KEY_EXAMS) || [];
-    const exam = exams.find(e => e.id === id);
-    if (!exam) {
-      loggerService.error(`Exam not found: ${id}`);
-      throw new Error("Exam not found");
-    }
-    return { ...exam };
+    loggerService.log(`Fetching exam: ${id}`);
+
+    const response = await fetch(`${API_URL}/exams/${id}`);
+    if (!response.ok) throw new Error("Exam not found");
+
+    return await response.json();
   }
 
-  // עדכון מבחן קיים
+
+  // Add new exam
+  async addExam(newExam) {
+    loggerService.log("Adding exam");
+
+    const response = await fetch(`${API_URL}/exams`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(newExam)
+    });
+
+    if (!response.ok) throw new Error("Failed to add exam");
+
+    return await response.json();
+  }
+
+
+  // Update exam
   async updateExam(updatedExam) {
     loggerService.log(`Updating exam: ${updatedExam.id}`);
-    await this._delay(600);
-    const exams = storageService.load(this.STORAGE_KEY_EXAMS) || [];
-    const idx = exams.findIndex(e => e.id === updatedExam.id);
-    if (idx === -1) throw new Error("Exam not found");
-    
-    exams[idx] = updatedExam;
-    storageService.save(this.STORAGE_KEY_EXAMS, exams);
-    loggerService.info("Exam updated successfully", updatedExam);
-    return updatedExam;
+
+    const response = await fetch(
+      `${API_URL}/exams/${updatedExam.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(updatedExam)
+      }
+    );
+
+    if (!response.ok) throw new Error("Failed to update exam");
+
+    return await response.json();
   }
 
-  // שמירת תוצאת מבחן של סטודנט
+
+  // Delete exam
+  async deleteExam(id) {
+    loggerService.log(`Deleting exam: ${id}`);
+
+    const response = await fetch(`${API_URL}/exams/${id}`, {
+      method: "DELETE"
+    });
+
+    if (!response.ok) throw new Error("Failed to delete exam");
+
+    return true;
+  }
+
+
+  // temporary keep results local until we make DB table
   async saveResult(result) {
-    loggerService.log("Saving exam result");
-    await this._delay(700);
-    const results = storageService.load(this.STORAGE_KEY_RESULTS) || [];
+    const results =
+      JSON.parse(localStorage.getItem("results_db")) || [];
+
     const newResult = {
       ...result,
-      id: 'r' + Date.now(),
+      id: Date.now(),
       date: new Date().toLocaleString()
     };
+
     results.push(newResult);
-    storageService.save(this.STORAGE_KEY_RESULTS, results);
-    loggerService.info("Result saved successfully", newResult);
+
+    localStorage.setItem(
+      "results_db",
+      JSON.stringify(results)
+    );
+
     return newResult;
   }
 
-  // שליפת היסטוריית תוצאות לפי מזהה סטודנט
+
   async getResultsByStudent(studentId) {
-    loggerService.log(`Fetching results for student: ${studentId}`);
-    await this._delay();
-    const results = storageService.load(this.STORAGE_KEY_RESULTS) || [];
-    return results.filter(r => r.studentId === studentId);
+    const results =
+      JSON.parse(localStorage.getItem("results_db")) || [];
+
+    return results.filter(
+      r => r.studentId === studentId
+    );
+  }
+
+
+  async getResultsByExam(examId) {
+    const results =
+      JSON.parse(localStorage.getItem("results_db")) || [];
+
+    return results.filter(
+      r => r.examId === examId
+    );
   }
 }
 

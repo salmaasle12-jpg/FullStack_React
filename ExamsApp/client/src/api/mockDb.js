@@ -1,18 +1,21 @@
-// בסיס נתונים מדומה של המערכת
+// Mock database for the system
 export const mockDb = {
-  // רשימת משתמשים
+  // User list
   users: [
     { id: "u101", email: "student@test.com", password: "123", role: "student", fullName: "Student User" },
     { id: "u102", email: "teacher@test.com", password: "123", role: "teacher", fullName: "Teacher User" }
   ],
   
-  // רשימת מבחנים
+  // Exam list
   exams: [
     {
       id: "101",
       title: "React Fundamentals",
+      status: "active",
+      timeLimit: 30,
+      passingGrade: 60,
 
-      // שאלות של המבחן
+      // Exam questions
       questions: [
         { 
           id: 1, 
@@ -33,8 +36,11 @@ export const mockDb = {
     {
       id: "102",
       title: "Node.js Basics",
+      status: "active",
+      timeLimit: 20,
+      passingGrade: 60,
 
-      // שאלות של המבחן
+      // Exam questions
       questions: [
         { 
           id: 1, 
@@ -43,10 +49,26 @@ export const mockDb = {
           answer: 0 
         }
       ]
+    },
+
+    {
+      id: "103",
+      title: "Advanced JavaScript",
+      status: "upcoming",
+      timeLimit: 45,
+      passingGrade: 70,
+      questions: [
+        { 
+          id: 1, 
+          text: "What is a closure?", 
+          options: ["A way to close a file", "A function with its lexical environment", "A loop type"], 
+          answer: 1 
+        }
+      ]
     }
   ],
 
-  // ציוני תלמידים
+  // Student scores
   studentScores: [
     { studentName: "Alice", examId: "101", score: 90 },
     { studentName: "Bob", examId: "101", score: 85 }

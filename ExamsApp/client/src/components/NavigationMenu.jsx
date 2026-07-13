@@ -1,51 +1,50 @@
 /**
- * רכיב תפריט ניווט מעוצב
  * Modern Navigation Menu component
  */
-const NavigationMenu = ({ user, onLogout, onToggleRole }) => {
-  // אם אין משתמש מחובר, לא מציגים את התפריט
+const NavigationMenu = ({ user, onLogout }) => {
+  // If no user is logged in, don't show the menu
   if (!user) return null;
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4 sticky-top px-3 py-2 border-bottom">
-      <div className="container">
-        <a className="navbar-brand d-flex align-items-center" href="#">
-          <span className="fs-3 me-2">📝</span>
-          <span className="fw-bold text-primary">E-Test System</span>
+    <nav className="navbar navbar-light py-2 bg-white sticky-top border-bottom shadow-sm">
+      <div className="container d-flex align-items-center justify-content-between">
+        {/* Brand */}
+        <a className="navbar-brand d-flex align-items-center" href="#" onClick={(e) => e.preventDefault()}>
+          <span className="fw-bold fs-5 text-dark" style={{ letterSpacing: '-1.5px' }}>
+            E-Test <span style={{ color: 'var(--primary-blue)' }}>System</span>
+          </span>
         </a>
-        
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
-          <span className="navbar-toggler-icon"></span>
-        </button>
 
-        <div className="collapse navbar-collapse" id="navbarMain">
-          <div className="ms-auto d-flex align-items-center gap-3">
-            <div className="d-none d-lg-block border-end pe-3 me-1">
-              <span className="text-muted small">Logged in as:</span>
-              <div className="fw-bold text-dark">
-                {user.fullName} {user.role === 'teacher' ? '👩‍🏫' : '🎓'}
+        {/* Right Actions - Always Visible */}
+        <div className="d-flex align-items-center gap-3">
+          {/* Notifications */}
+          <button className="nav-icon-btn btn border-0 p-2 shadow-none position-relative bg-light rounded-circle d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style={{ width: '10px', height: '10px' }}></span>
+          </button>
+
+          {/* Profile Section */}
+          <div className="d-flex align-items-center border-start ps-3 ms-1">
+            <div className="profile-avatar me-2" style={{ width: '34px', height: '34px', fontSize: '0.85rem' }}>
+              {user.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
+            </div>
+            <div className="text-start d-none d-sm-block me-3">
+              <div className="fw-bold text-dark small" style={{ lineHeight: '1.2' }}>{user.fullName}</div>
+              <div className="text-muted" style={{ fontSize: '0.65rem' }}>
+                {user.role === 'teacher' ? 'Faculty' : 'Student'}
               </div>
             </div>
-            
-            <div className="btn-group shadow-sm rounded-pill overflow-hidden" role="group">
-              <button 
-                className={`btn btn-sm px-3 ${user.role === 'teacher' ? 'btn-primary' : 'btn-outline-primary border-0'}`}
-                onClick={() => onToggleRole('teacher')}
-              >
-                Teacher
-              </button>
-              <button 
-                className={`btn btn-sm px-3 ${user.role === 'student' ? 'btn-primary' : 'btn-outline-primary border-0'}`}
-                onClick={() => onToggleRole('student')}
-              >
-                Student
-              </button>
-            </div>
-
-            <button className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" onClick={onLogout}>
-              Logout 🔐
-            </button>
           </div>
+
+          {/* Logout Button */}
+          <button className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-2" onClick={onLogout} style={{ fontSize: '0.75rem' }}>
+            <span className="d-none d-md-inline">Logout</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
         </div>
       </div>
     </nav>

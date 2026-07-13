@@ -1,19 +1,18 @@
 /**
- * שירות להצגת התראות למשתמש
  * Notify service for user alerts
  */
 class NotifyService {
-  // הצגת הודעת הצלחה
+  // Show success message
   success(txt) {
     alert(`Success: ${txt}`);
   }
 
-  // הצגת הודעת שגיאה
+  // Show error message
   error(txt) {
     alert(`Error: ${txt}`);
   }
 
-  // הצגת הודעת מידע
+  // Show info message
   info(txt) {
     alert(`Info: ${txt}`);
   }
