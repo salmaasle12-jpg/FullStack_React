@@ -2,6 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { examService } from '../api/examService';
 import { notifyService } from '../services/notifyService';
 
+const normalizeExam = (exam) => ({
+  ...exam,
+  status: exam.status ?? 'draft',
+  timeLimit: Number(exam.timeLimit ?? exam.time_limit ?? 30),
+  passingGrade: Number(exam.passingGrade ?? exam.passing_grade ?? 60),
+  questions: Array.isArray(exam.questions) ? exam.questions : []
+});
+
 /**
  * Static 3D-Style Educational Illustration for the Hero Banner
  */
@@ -102,7 +110,7 @@ const TeacherDashboard = () => {
     try {
       setLoading(true);
       const data = await examService.getAllExams();
-      setExams(data);
+      setExams(Array.isArray(data) ? data.map(normalizeExam) : []);
     } catch {
       notifyService.error('Failed to load exams');
     } finally {
@@ -123,7 +131,7 @@ const TeacherDashboard = () => {
         setResultsData({ stats: null, submissions: [] });
       } else {
         const scores = submissions.map((s) => Number(s.score) || 0);
-        const passingGrade = exam.passingGrade || 60;
+        const passingGrade = Number(exam.passingGrade ?? exam.passing_grade ?? 60);
 
         const stats = {
           total: submissions.length,
@@ -181,23 +189,45 @@ const TeacherDashboard = () => {
       }
     }
 
+    const finalTimeLimit = Number(
+      editingExam.timeLimit ?? editingExam.time_limit ?? 30
+    );
+    const finalPassingGrade = Number(
+      editingExam.passingGrade ?? editingExam.passing_grade ?? 60
+    );
+
+    if (!Number.isFinite(finalTimeLimit) || finalTimeLimit < 1) {
+      notifyService.error('Please enter a valid duration');
+      return;
+    }
+
     if (
-      editingExam.passingGrade === undefined ||
-      editingExam.passingGrade === null ||
-      editingExam.passingGrade < 0 ||
-      editingExam.passingGrade > 100
+      !Number.isFinite(finalPassingGrade) ||
+      finalPassingGrade < 0 ||
+      finalPassingGrade > 100
     ) {
       notifyService.error('Please enter a valid passing grade (0-100)');
       return;
     }
 
+    const examData = {
+      ...editingExam,
+      status: editingExam.status ?? 'draft',
+      timeLimit: finalTimeLimit,
+      passingGrade: finalPassingGrade,
+      questions: editingExam.questions || []
+    };
+
+    delete examData.time_limit;
+    delete examData.passing_grade;
+    delete examData.isNew;
+
     try {
       if (editingExam.isNew) {
-        const { isNew, ...examData } = editingExam;
         await examService.addExam(examData);
         notifyService.success('Exam created successfully!');
       } else {
-        await examService.updateExam(editingExam);
+        await examService.updateExam(examData);
         notifyService.success('Exam updated successfully!');
       }
 
@@ -358,7 +388,7 @@ const TeacherDashboard = () => {
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
           <h2 className="fw-bold mb-1 text-dark">Results: {resultsExam?.title}</h2>
-          <p className="text-muted mb-0">Pass grade: {resultsExam?.passingGrade || 60}%</p>
+          <p className="text-muted mb-0">Pass grade: {resultsExam?.passingGrade ?? resultsExam?.passing_grade ?? 60}%</p>
         </div>
         <button className="btn btn-light border rounded-pill px-4 fw-bold shadow-sm" onClick={() => setView('dashboard')}>
           ← Back to Dashboard
@@ -413,13 +443,13 @@ const TeacherDashboard = () => {
                         </div>
                       </td>
                       <td className="text-center">
-                        <span className="fw-bold" style={{ color: sub.score >= (resultsExam?.passingGrade || 60) ? 'var(--secondary-green)' : '#EF4444' }}>
+                        <span className="fw-bold" style={{ color: sub.score >= (resultsExam?.passingGrade ?? resultsExam?.passing_grade ?? 60) ? 'var(--secondary-green)' : '#EF4444' }}>
                           {sub.score}%
                         </span>
                       </td>
                       <td className="text-center">
-                        <span className={`status-chip ${sub.score >= (resultsExam?.passingGrade || 60) ? 'status-active' : 'status-disabled'}`}>
-                          {sub.score >= (resultsExam?.passingGrade || 60) ? 'Passed' : 'Failed'}
+                        <span className={`status-chip ${sub.score >= (resultsExam?.passingGrade ?? resultsExam?.passing_grade ?? 60) ? 'status-active' : 'status-disabled'}`}>
+                          {sub.score >= (resultsExam?.passingGrade ?? resultsExam?.passing_grade ?? 60) ? 'Passed' : 'Failed'}
                         </span>
                       </td>
                       <td className="text-center text-muted">
@@ -499,8 +529,13 @@ const TeacherDashboard = () => {
                   <input
                     type="number"
                     className="form-control border-light bg-light"
-                    value={editingExam.timeLimit || 30}
-                    onChange={(e) => updateEditingExam('timeLimit', parseInt(e.target.value) || 0)}
+                    value={editingExam.timeLimit ?? 30}
+                    onChange={(e) =>
+                      updateEditingExam(
+                        'timeLimit',
+                        e.target.value === '' ? '' : Number(e.target.value)
+                      )
+                    }
                     min="1"
                   />
                 </div>
@@ -510,8 +545,13 @@ const TeacherDashboard = () => {
                   <input
                     type="number"
                     className="form-control border-light bg-light"
-                    value={editingExam.passingGrade || 60}
-                    onChange={(e) => updateEditingExam('passingGrade', parseInt(e.target.value) || 0)}
+                    value={editingExam.passingGrade ?? 60}
+                    onChange={(e) =>
+                      updateEditingExam(
+                        'passingGrade',
+                        e.target.value === '' ? '' : Number(e.target.value)
+                      )
+                    }
                     min="0"
                     max="100"
                   />
@@ -692,7 +732,7 @@ const TeacherDashboard = () => {
                             <div className="text-muted small" style={{ fontSize: '0.7rem' }}>Created: {new Date().toLocaleDateString()}</div>
                           </td>
                           <td className="text-center text-muted small fw-bold">
-                            {exam.timeLimit || 30} min
+                            {exam.timeLimit ?? exam.time_limit ?? 30} min
                           </td>
                           <td className="text-center">
                             <span className={`status-chip status-${exam.status || 'draft'}`}>
@@ -701,7 +741,7 @@ const TeacherDashboard = () => {
                           </td>
                           <td className="text-end pe-4">
                             <div className="d-flex gap-2 justify-content-end">
-                              <button className="btn-icon" title="View Details" onClick={() => setEditingExam(exam)}>
+                              <button className="btn-icon" title="View Details" onClick={() => setEditingExam(normalizeExam(exam))}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
